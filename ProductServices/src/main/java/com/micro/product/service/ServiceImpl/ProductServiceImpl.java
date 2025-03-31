@@ -2,14 +2,12 @@ package com.micro.product.service.ServiceImpl;
 
 import com.micro.product.Costomexception.ProductNotFoundException;
 import com.micro.product.dto.ProductDto;
-import com.micro.product.jwtServices.JwtValidationService;
 import com.micro.product.model.Product;
 import com.micro.product.repository.ProductRepository;
 import com.micro.product.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,10 +19,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ModelMapper productMapper;
-
-    @Autowired
-    private JwtValidationService jwtValidationService;
-
 
 
     @Override

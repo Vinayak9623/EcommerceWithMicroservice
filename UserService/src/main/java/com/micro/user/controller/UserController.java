@@ -92,17 +92,6 @@ public class UserController {
         }
     }
 
-//    @GetMapping("/role")
-//    public ResponseEntity<String> getRole(@RequestHeader("Authorization") String token) {
-//        try {
-//            String jwt = token.replace("Bearer ", "");
-//            String role = jwtUtil.extractRole(jwt);
-//            return ResponseEntity.ok(role);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-//    }
-
     @GetMapping("/role")
     public ResponseEntity<String> getRole(@RequestHeader("Authorization") String token) {
         try {
@@ -115,14 +104,10 @@ public class UserController {
             return ResponseEntity.ok(role);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }}}
+        }
+    }
+}
 
-//    @GetMapping("/role")
-//    public ResponseEntity<String> getUserRole(@RequestHeader("Authorization") String token) {
-//        String jwt = token.substring(7); // Remove "Bearer "
-//        String role = "ROLE_" + jwtUtil.extractRole(jwt); // Add ROLE_ prefix
-//        return ResponseEntity.ok(role);
-//    }
-  //  }
+
 
 
