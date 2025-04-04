@@ -18,8 +18,9 @@ public class ProductController {
 
 
     @PostMapping("/save")
-    public ResponseEntity<ProductDto> save(
-            @RequestBody ProductDto productDto) {
+    public ResponseEntity<ProductDto> save(@RequestBody ProductDto productDto) {
+        System.out.println("Controler call");
+
         ProductDto saveProduct = productService.create(productDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saveProduct);
     }
@@ -27,6 +28,7 @@ public class ProductController {
 
     @GetMapping("/")
     public ResponseEntity<List<ProductDto>> getProducts(){
+        System.out.println("Controller call");
         List<ProductDto> productDtos = productService.getAllProduct();
 
         return ResponseEntity.ok(productDtos);
@@ -41,12 +43,14 @@ public class ProductController {
     }
 
 
+
     @PutMapping("/update/{id}")
     public ResponseEntity<ProductDto> update(@PathVariable Long id,@RequestBody ProductDto productDto){
         ProductDto update = productService.update(id, productDto);
 
         return ResponseEntity.ok(update);
     }
+
 
 
     @DeleteMapping("/delete/{id}")

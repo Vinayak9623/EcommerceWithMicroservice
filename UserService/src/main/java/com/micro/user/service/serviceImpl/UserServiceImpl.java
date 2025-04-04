@@ -21,12 +21,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
 @AllArgsConstructor
+@Service
 public class UserServiceImpl implements UserService {
 
 
@@ -37,7 +38,6 @@ public class UserServiceImpl implements UserService {
     private final ProductClient productClient;
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
-
 
     @Override
     public LoginResponse registerUser(UserDto userDto) {
@@ -51,7 +51,6 @@ public class UserServiceImpl implements UserService {
         user.setRole(userDto.getRole() != null ? userDto.getRole() : Role.USER);
 
         User registeredUser = userRepository.save(user);
-//        String token = jwtUtil.generateToken(registeredUser.getEmail(), registeredUser.getRole().name());
 
         return new LoginResponse("", true);
     }
@@ -94,6 +93,8 @@ public class UserServiceImpl implements UserService {
         return userMapper.map(user, UserDto.class);
     }
 
+
+
     @Override
     public UserDto updateUser(long id, UserDto userDto) {
 
@@ -127,10 +128,38 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    @Override
-    public List<OrderWithProductResponseDto> getOrderByUserId(Long userId) {
+//    @Override
+//    public List<OrderWithProductResponseDto> getOrderByUserId(Long userId) {
+//
+//        List<OrderResonseDto> orders = orderClient.getOrderByUserId(userId);
+//
+//        if (orders == null || orders.isEmpty()) {
+//
+//            throw new RuntimeException("no order found for this userId" + userId);
+//        }
+//
+//        List<OrderWithProductResponseDto> orderWithProduct = orders.stream().map(order -> {
+//            ProductResponseDto product =
+//                    productClient.getProductById(order.getProductId());
+//
+//            OrderWithProductResponseDto responseDto = new OrderWithProductResponseDto();
+//
+//            responseDto.setOrderId(order.getId());
+//            responseDto.setProduct(product);
+//            responseDto.setQuantity(order.getQuantity());
+//            responseDto.setOrderDate(order.getOrderDate());
+//
+//            return responseDto;
+//        }).collect(Collectors.toList());
+//
+//        return orderWithProduct;
+//    }
 
-        List<OrderResonseDto> orders = orderClient.getOrderByUserId(userId);
+
+    @Override
+    public List<OrderWithProductResponseDto> getOrderByUserId(Long userId,String token) {
+
+        List<OrderResonseDto> orders = orderClient.getOrderByUserId(userId,token);
 
         if (orders == null || orders.isEmpty()) {
 
@@ -139,7 +168,7 @@ public class UserServiceImpl implements UserService {
 
         List<OrderWithProductResponseDto> orderWithProduct = orders.stream().map(order -> {
             ProductResponseDto product =
-                    productClient.getProductById(order.getProductId());
+                    productClient.getProductById(order.getProductId(), token);
 
             OrderWithProductResponseDto responseDto = new OrderWithProductResponseDto();
 

@@ -4,13 +4,21 @@ import com.micro.user.dto.LoginRequest;
 import com.micro.user.dto.LoginResponse;
 import com.micro.user.dto.UserDto;
 import com.micro.user.jwtSecurity.JwtUtil;
+import com.micro.user.model.Role;
+import com.micro.user.model.User;
+import com.micro.user.repository.UserRepository;
 import com.micro.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
@@ -20,7 +28,15 @@ public class UserController {
     private UserService userService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@RequestBody UserDto userDto) {
@@ -71,41 +87,44 @@ public class UserController {
     }
 
 
-    @GetMapping("/{userId}/orders")
-    public ResponseEntity<List<OrderWithProductResponseDto>> getOrderByUserId(@PathVariable Long userId) {
-        List<OrderWithProductResponseDto> orders = userService.getOrderByUserId(userId);
+//    @GetMapping("/{userId}/orders")
+//    public ResponseEntity<List<OrderWithProductResponseDto>> getOrderByUserId(@PathVariable Long userId) {
+//
+//        System.out.println("Controller call");
+//        List<OrderWithProductResponseDto> orders = userService.getOrderByUserId(userId);
+//
+//        System.out.println(orders);
+//        return ResponseEntity.ok(orders);
+//    }
 
+    @GetMapping("/{userId}/orders")
+    public ResponseEntity<List<OrderWithProductResponseDto>> getOrderByUserId(@PathVariable Long userId,@RequestHeader("Authorization") String token) {
+        List<OrderWithProductResponseDto> orders = userService.getOrderByUserId(userId,token);
         return ResponseEntity.ok(orders);
     }
 
-
-    @GetMapping("/validate")
-    public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
+    @GetMapping("/userDetails")
+    public ResponseEntity<UserDto> validateToken(@RequestHeader("Authorization") String token) {
         try {
             String jwt = token.substring(7);
             String username = jwtUtil.extractUsername(jwt);
             String role = jwtUtil.extractRole(jwt);
+            Optional<User> user = userRepository.findByEmail(username);
 
-            return ResponseEntity.ok(role);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-        }
-    }
-
-    @GetMapping("/role")
-    public ResponseEntity<String> getRole(@RequestHeader("Authorization") String token) {
-        try {
-            if (token == null || !token.startsWith("Bearer ")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            if (user.isPresent()) {
+               // UserDto userDto = new UserDto(user.get().getId(), user.get().getName(), user.get().getEmail(), user.get().getPassword(), Role.valueOf(role));
+                UserDto userDto = new UserDto(user.get().getId(), user.get().getName(), user.get().getEmail(), user.get().getPassword(),user.get().getRole());
+                return ResponseEntity.ok(userDto);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-
-            String jwt = token.substring(7);
-            String role = jwtUtil.extractRole(jwt);
-            return ResponseEntity.ok(role);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
+
+
 }
 
 
