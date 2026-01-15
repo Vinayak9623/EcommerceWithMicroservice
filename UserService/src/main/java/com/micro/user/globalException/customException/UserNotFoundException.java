@@ -1,4 +1,4 @@
-package com.micro.user.customException;
+package com.micro.user.globalException.customException;
 
 public class UserNotFoundException extends RuntimeException{
 
