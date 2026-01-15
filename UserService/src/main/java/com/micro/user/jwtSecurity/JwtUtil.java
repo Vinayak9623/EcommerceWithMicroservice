@@ -2,7 +2,6 @@ package com.micro.user.jwtSecurity;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,14 +15,8 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    //private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-
     @Value("${jwt.secret}")
     private String jwtSecret;
-
-
-    //private static final long EXPIRATION_TIME = 86400000;
-
     @Value("${jwt.expiration}")
     private long expirationTime;
 
@@ -34,8 +27,6 @@ public class JwtUtil {
 
     public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
-        //claims.put("role", "ROLE_" + role);
-
         claims.put("role",role);
 
         return Jwts.builder()

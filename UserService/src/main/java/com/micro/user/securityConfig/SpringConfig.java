@@ -9,7 +9,6 @@ public class SpringConfig {
 
     @Bean
     public ModelMapper modelMapper() {
-
         return new ModelMapper();
     }
 }
