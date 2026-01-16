@@ -1,0 +1,18 @@
+package com.micro.user.common;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class ApiResponse<T> {
+    private int status;
+    private String message;
+    private T data;
+    private String error;
+    private LocalDateTime timestamp;
+}
