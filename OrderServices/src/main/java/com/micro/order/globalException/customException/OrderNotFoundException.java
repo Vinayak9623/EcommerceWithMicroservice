@@ -1,4 +1,4 @@
-package com.micro.order.customException;
+package com.micro.order.globalException.customException;
 
 public class OrderNotFoundException extends RuntimeException{
 
