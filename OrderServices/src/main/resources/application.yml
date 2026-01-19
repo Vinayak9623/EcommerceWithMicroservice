@@ -18,6 +18,14 @@ spring:
 server:
   port: 8092
 
+jwt:
+  secret: mySuperSecretKey123457684hfhru49463geheje9e6464gfhjfi49474653739hdgrt457e8hfh
+  expiration: 86400000
+
+services:
+  product-service:
+    url: http://localhost:8082
+
 eureka:
   client:
     service-url:

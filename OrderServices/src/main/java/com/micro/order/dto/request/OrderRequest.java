@@ -1,19 +1,19 @@
-package com.micro.order.dto;
+package com.micro.order.dto.request;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderDto {
-
-    private Long id;
+public class OrderRequest {
     private Long userId;
     private Long productId;
     private int quantity;
-    private LocalDate orderDate;
+    private double price;
 }

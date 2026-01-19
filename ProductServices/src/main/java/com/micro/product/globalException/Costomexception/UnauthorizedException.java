@@ -1,4 +1,4 @@
-package com.micro.product.Costomexception;
+package com.micro.product.globalException.Costomexception;
 
 public class UnauthorizedException extends RuntimeException{
 

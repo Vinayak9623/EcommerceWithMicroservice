@@ -1,18 +1,21 @@
-package com.micro.order.globalException;
-import com.micro.order.common.ApiResponse;
-import com.micro.order.globalException.customException.OrderNotFoundException;
+package com.micro.product.globalException;
+
+import com.micro.product.common.ApiResponse;
+import com.micro.product.globalException.Costomexception.InsufficientStockException;
+import com.micro.product.globalException.Costomexception.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
-public class GlobalException {
+public class GlobalExceptionHandler {
 
-    @ExceptionHandler(OrderNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleOrderNotFoundException(
-            OrderNotFoundException ex) {
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProductNotFoundException(
+            ProductNotFoundException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -20,7 +23,22 @@ public class GlobalException {
                         404,
                         ex.getMessage(),
                         null,
-                        "ORDER_NOT_FOUND",
+                        "PRODUCT_NOT_FOUND",
+                        LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientStockException(
+            InsufficientStockException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse<>(
+                        404,
+                        ex.getMessage(),
+                        null,
+                        "Insufficient Stock found",
                         LocalDateTime.now()
                 ));
     }
@@ -38,5 +56,4 @@ public class GlobalException {
                         LocalDateTime.now()
                 ));
     }
-
 }
