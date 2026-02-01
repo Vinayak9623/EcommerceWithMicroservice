@@ -56,5 +56,12 @@ public class ProductController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Stock reduced successfully", "SUCCESS", null, LocalDateTime.now()));
     }
 
+    @PutMapping("/restore-stock")
+    public ResponseEntity<ApiResponse<String>> restoreStock(
+            @RequestBody ReduceStockRequest request) {
+        productService.restoreStock(request.getProductId(), request.getQuantity());
+        return ResponseEntity.ok(new ApiResponse<>(200, "Stock restored successfully", "SUCCESS", null, LocalDateTime.now()));
+    }
+
 
 }

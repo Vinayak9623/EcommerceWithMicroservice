@@ -1,4 +1,5 @@
-package com.micro.product.security;
+package com.micro.order.security;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

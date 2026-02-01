@@ -91,5 +91,17 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(product);
     }
+
+    @Override
+    public void restoreStock(Long productId, int quantity) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new ProductNotFoundException(
+                                "Product not found with id: " + productId));
+        product.setStockQuantity(
+                product.getStockQuantity() + quantity);
+        productRepository.save(product);
+    }
 }
 

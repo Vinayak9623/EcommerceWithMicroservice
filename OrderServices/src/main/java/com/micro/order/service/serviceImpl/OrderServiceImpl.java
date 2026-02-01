@@ -1,6 +1,7 @@
 package com.micro.order.service.serviceImpl;
 
 import com.micro.order.client.ProductClient;
+import com.micro.order.client.UserClient;
 import com.micro.order.globalException.customException.OrderNotFoundException;
 import com.micro.order.dto.request.OrderRequest;
 import com.micro.order.dto.response.OrderResponse;
@@ -22,25 +23,44 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ModelMapper orderMapper;
     private final ProductClient productClient;
+    private final UserClient userClient;
 
     @Override
     public OrderResponse placeOrder(OrderRequest orderRequest, String token) {
 
-        productClient
-                .reduceStock(orderRequest.getProductId()
-                        , orderRequest.getQuantity(), token);
+        boolean stockReduced=false;
 
-        Order order = Order.builder()
-                .userId(orderRequest.getUserId())
-                .productId(orderRequest.getProductId())
-                .quantity(orderRequest.getQuantity())
-                .price(orderRequest.getPrice())
-                .orderDate(LocalDateTime.now())
-                .status("CREATED")
-                .build();
+        try {
 
-        Order savedOrder = orderRepository.save(order);
-        return orderMapper.map(savedOrder, OrderResponse.class);
+            userClient.validateUser(orderRequest.getUserId(), token);
+            productClient
+                    .reduceStock(orderRequest.getProductId()
+                            , orderRequest.getQuantity(), token);
+
+            stockReduced=true;
+
+            Order order = Order.builder()
+                    .userId(orderRequest.getUserId())
+                    .productId(orderRequest.getProductId())
+                    .quantity(orderRequest.getQuantity())
+                    .price(orderRequest.getPrice())
+                    .orderDate(LocalDateTime.now())
+                    .status("CREATED")
+                    .build();
+
+            Order savedOrder = orderRepository.save(order);
+            return orderMapper.map(savedOrder, OrderResponse.class);
+        }
+        catch (Exception e){
+
+            if(stockReduced){
+                productClient
+                        .restoreStock(orderRequest
+                                .getProductId(), orderRequest
+                                .getQuantity(), token);
+            }
+            throw new RuntimeException("Order placement failed. Transaction rolled back.", e);
+        }
     }
 
     @Override

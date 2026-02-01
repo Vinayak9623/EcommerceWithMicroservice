@@ -24,8 +24,9 @@ jwt:
 
 services:
   product-service:
-    url: http://localhost:8082
-
+    url: http://localhost:8091
+  user-service:
+    url: http://localhost:8090
 eureka:
   client:
     service-url:
