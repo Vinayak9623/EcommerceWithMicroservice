@@ -5,6 +5,7 @@ import com.micro.user.dto.LoginRequest;
 import com.micro.user.dto.LoginResponse;
 import com.micro.user.dto.UserDto;
 import com.micro.user.dto.UserResponse;
+import com.micro.user.globalException.customException.UserNotFoundException;
 import com.micro.user.jwtSecurity.JwtUtil;
 import com.micro.user.repository.UserRepository;
 import com.micro.user.service.UserService;
@@ -69,6 +70,15 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable long id) {
         String response = userService.deleteUser(id);
         return ResponseEntity.ok(new ApiResponse<>(200,"User deleted successfully",null,null,LocalDateTime.now()));
+    }
+
+    @GetMapping("/validate/{userId}")
+    public ResponseEntity<ApiResponse<String>> validateUser(@PathVariable Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        return ResponseEntity.ok(new ApiResponse<>(200, "User is valid", "VALID", null, LocalDateTime.now()
+                )
+        );
     }
 
 }

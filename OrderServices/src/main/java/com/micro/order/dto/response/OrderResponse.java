@@ -1,24 +1,16 @@
-package com.micro.order.model;
+package com.micro.order.dto.response;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Builder
-@Entity
-@Table(name="orders")
-public class Order {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class OrderResponse {
     private Long id;
     private Long userId;
     private Long productId;
@@ -26,6 +18,4 @@ public class Order {
     private double price;
     private LocalDateTime orderDate;
     private String status;
-
-
 }

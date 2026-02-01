@@ -12,5 +12,9 @@ public interface ProductService {
     ProductDto getProductById(Long id);
     ProductDto update(Long id,ProductDto productDto);
     String deleteProduct(Long id);
+    void reduceStock(Long productId, int quantity);
+    void restoreStock(Long productId, int quantity);
+
+
 
 }

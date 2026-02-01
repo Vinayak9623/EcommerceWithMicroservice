@@ -1,17 +1,13 @@
 package com.micro.order.service;
-import com.micro.order.dto.OrderDetailsDto;
-import com.micro.order.dto.OrderDto;
-import com.micro.order.externalServices.OrderRequest;
+import com.micro.order.dto.request.OrderRequest;
+import com.micro.order.dto.response.OrderResponse;
 
 import java.util.List;
 
 public interface OrderService {
 
-    public OrderDto placeOrder(OrderRequest orderRequest);
-    List<OrderDto> getOrders();
-    OrderDto updateOrder(Long id,OrderDto orderDto);
+    OrderResponse placeOrder(OrderRequest orderRequest,String token);
+    List<OrderResponse> getOrders();
+    OrderResponse updateOrder(Long id, OrderRequest orderRequest);
     String deleteOrder(Long id);
-    List<OrderDto> getOrderHistory(Long userId);
-    OrderDetailsDto getOrderDetails(Long id);
-    List<OrderDto> getOrderByUserId(Long userId);
 }
