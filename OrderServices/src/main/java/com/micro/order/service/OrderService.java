@@ -8,6 +8,6 @@ public interface OrderService {
 
     OrderResponse placeOrder(OrderRequest orderRequest,String token);
     List<OrderResponse> getOrders();
-    OrderResponse updateOrder(Long id, OrderRequest orderRequest);
+    //OrderResponse updateOrder(Long id, OrderRequest orderRequest);
     String deleteOrder(Long id);
 }

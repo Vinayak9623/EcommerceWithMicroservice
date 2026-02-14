@@ -1,15 +1,14 @@
 package com.micro.order.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -21,11 +20,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long userId;
-    private Long productId;
-    private int quantity;
-    private double price;
     private LocalDateTime orderDate;
+    private double totalAmount;
     private String status;
+    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<OrderItem> items;
 
 
 }
