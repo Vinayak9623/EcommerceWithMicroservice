@@ -34,12 +34,12 @@ public class OrderController {
         );
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> updateOrder(@PathVariable Long id,
-            @RequestBody OrderRequest orderRequest) {
-        OrderResponse order = orderService.updateOrder(id, orderRequest);
-        return ResponseEntity.ok(new ApiResponse<>(200, "Order updated successfully", order, null, LocalDateTime.now()));
-    }
+//    @PutMapping("/update/{id}")
+//    public ResponseEntity<ApiResponse<OrderResponse>> updateOrder(@PathVariable Long id,
+//            @RequestBody OrderRequest orderRequest) {
+//        OrderResponse order = orderService.updateOrder(id, orderRequest);
+//        return ResponseEntity.ok(new ApiResponse<>(200, "Order updated successfully", order, null, LocalDateTime.now()));
+//    }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse<String>> deleteOrder(@PathVariable Long id) {

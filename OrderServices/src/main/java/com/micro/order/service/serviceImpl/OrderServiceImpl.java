@@ -2,10 +2,12 @@ package com.micro.order.service.serviceImpl;
 
 import com.micro.order.client.ProductClient;
 import com.micro.order.client.UserClient;
+import com.micro.order.dto.request.OrderItemRequest;
 import com.micro.order.globalException.customException.OrderNotFoundException;
 import com.micro.order.dto.request.OrderRequest;
 import com.micro.order.dto.response.OrderResponse;
 import com.micro.order.model.Order;
+import com.micro.order.model.OrderItem;
 import com.micro.order.repository.OrderRepository;
 import com.micro.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,42 +29,80 @@ public class OrderServiceImpl implements OrderService {
     private final UserClient userClient;
 
     @Override
-    public OrderResponse placeOrder(OrderRequest orderRequest, String token) {
+    public OrderResponse placeOrder(OrderRequest request, String token) {
 
-        boolean stockReduced=false;
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Order must contain items");
+        }
+
+        // 1️⃣ Create order with PENDING status first
+        Order order = Order.builder()
+                .userId(request.getUserId())
+                .orderDate(LocalDateTime.now())
+                .status("PENDING")
+                .totalAmount(0)
+                .build();
+
+        Order savedOrder = orderRepository.save(order);
+
+        List<OrderItemRequest> reducedItems = new ArrayList<>();
+        double totalAmount = 0;
 
         try {
+            // 2️⃣ Validate user
+            userClient.validateUser(request.getUserId(), token);
 
-            userClient.validateUser(orderRequest.getUserId(), token);
-            productClient
-                    .reduceStock(orderRequest.getProductId()
-                            , orderRequest.getQuantity(), token);
+            // 3️⃣ Reduce stock
+            for (OrderItemRequest item : request.getItems()) {
 
-            stockReduced=true;
+                productClient.reduceStock(
+                        item.getProductId(),
+                        item.getQuantity(),
+                        token
+                );
 
-            Order order = Order.builder()
-                    .userId(orderRequest.getUserId())
-                    .productId(orderRequest.getProductId())
-                    .quantity(orderRequest.getQuantity())
-                    .price(orderRequest.getPrice())
-                    .orderDate(LocalDateTime.now())
-                    .status("CREATED")
-                    .build();
+                reducedItems.add(item);
 
-            Order savedOrder = orderRepository.save(order);
-            return orderMapper.map(savedOrder, OrderResponse.class);
-        }
-        catch (Exception e){
-
-            if(stockReduced){
-                productClient
-                        .restoreStock(orderRequest
-                                .getProductId(), orderRequest
-                                .getQuantity(), token);
+                totalAmount += item.getPrice() * item.getQuantity();
             }
-            throw new RuntimeException("Order placement failed. Transaction rolled back.", e);
+
+            // 4️⃣ Create order items
+            List<OrderItem> orderItems = request.getItems().stream()
+                    .map(item -> OrderItem.builder()
+                            .productId(item.getProductId())
+                            .quantity(item.getQuantity())
+                            .price(item.getPrice())
+                            .order(savedOrder)
+                            .build()
+                    ).collect(Collectors.toList());
+
+            savedOrder.setItems(orderItems);
+            savedOrder.setTotalAmount(totalAmount);
+            savedOrder.setStatus("CREATED");
+
+            Order finalOrder = orderRepository.save(savedOrder);
+
+            return orderMapper.map(finalOrder, OrderResponse.class);
+
+        } catch (Exception ex) {
+
+            // 🔁 Rollback stock if reduced
+            for (OrderItemRequest item : reducedItems) {
+                productClient.restoreStock(
+                        item.getProductId(),
+                        item.getQuantity(),
+                        token
+                );
+            }
+
+            // ❗ Mark order as FAILED
+            savedOrder.setStatus("FAILED");
+            orderRepository.save(savedOrder);
+
+            throw new RuntimeException("Order placement failed", ex);
         }
     }
+
 
     @Override
     public List<OrderResponse> getOrders() {
@@ -72,21 +113,21 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public OrderResponse updateOrder(Long id, OrderRequest orderRequest) {
-
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() ->
-                        new OrderNotFoundException("Order not found with id: " + id));
-
-
-        order.setQuantity(orderRequest.getQuantity());
-        order.setPrice(orderRequest.getPrice());
-        order.setStatus("UPDATED");
-
-        Order updatedOrder = orderRepository.save(order);
-        return orderMapper.map(updatedOrder, OrderResponse.class);
-    }
+//    @Override
+//    public OrderResponse updateOrder(Long id, OrderRequest orderRequest) {
+//
+//        Order order = orderRepository.findById(id)
+//                .orElseThrow(() ->
+//                        new OrderNotFoundException("Order not found with id: " + id));
+//
+//
+//        order.setQuantity(orderRequest.getQuantity());
+//        order.setPrice(orderRequest.getPrice());
+//        order.setStatus("UPDATED");
+//
+//        Order updatedOrder = orderRepository.save(order);
+//        return orderMapper.map(updatedOrder, OrderResponse.class);
+//    }
 
     @Override
     public String deleteOrder(Long id) {
