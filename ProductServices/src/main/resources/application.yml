@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
   application:
     name: product-service
   datasource:
@@ -21,6 +25,9 @@ server:
 jwt:
   secret: mySuperSecretKey123457684hfhru49463geheje9e6464gfhjfi49474653739hdgrt457e8hfh
   expiration: 86400000
+
+app:
+  base-url: http://localhost:8091
 
 eureka:
   client:

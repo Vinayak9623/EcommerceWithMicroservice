@@ -1,5 +1,6 @@
 package com.micro.product.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.micro.product.common.ApiResponse;
 import com.micro.product.dto.ProductDto;
 import com.micro.product.dto.ReduceStockRequest;
@@ -7,6 +8,7 @@ import com.micro.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,11 +21,33 @@ public class ProductController {
     private ProductService productService;
 
 
-    @PostMapping("/save")
-    public ResponseEntity<ApiResponse<ProductDto>> save(@RequestBody ProductDto productDto) {
-        ProductDto saveProduct = productService.create(productDto);
-        return ResponseEntity.ok(new ApiResponse<>(201,"Product added successfully",saveProduct,null, LocalDateTime.now()));
+//    @PostMapping(value = "/save",consumes = "multipart/form-data")
+//    public ResponseEntity<ApiResponse<ProductDto>> save(@RequestPart("product") ProductDto productDto,
+//                                                        @RequestPart("image")MultipartFile image) {
+//        ProductDto saveProduct = productService.create(productDto,image);
+//        return ResponseEntity.ok(new ApiResponse<>(201,"Product added successfully",saveProduct,null, LocalDateTime.now()));
+//    }
+
+    @PostMapping(value = "/save", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<ProductDto>> save(
+            @RequestPart("product") String productJson,
+            @RequestPart("image") MultipartFile image
+    ) throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+        ProductDto productDto = mapper.readValue(productJson, ProductDto.class);
+
+        ProductDto savedProduct = productService.create(productDto, image);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(201,
+                        "Product added successfully",
+                        savedProduct,
+                        null,
+                        LocalDateTime.now())
+        );
     }
+
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse<List<ProductDto>>> getProducts(){
