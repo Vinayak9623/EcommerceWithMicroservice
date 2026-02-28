@@ -14,6 +14,8 @@ import com.micro.user.repository.UserRepository;
 import com.micro.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -105,6 +107,12 @@ public class UserServiceImpl implements UserService {
                                 ("User not found"));
         userRepository.deleteById(id);
         return "User with given ID: " + id + "deleted Sucessfully";
+    }
+
+    @Override
+    public Page<UserResponse> getUsersPage(String keyword, Pageable pageable) {
+        Page<User> users = userRepository.searchUser(keyword, pageable);
+        return users.map(user->userMapper.map(user, UserResponse.class));
     }
 
 }
