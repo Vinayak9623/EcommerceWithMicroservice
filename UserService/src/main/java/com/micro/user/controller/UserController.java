@@ -10,6 +10,8 @@ import com.micro.user.jwtSecurity.JwtUtil;
 import com.micro.user.repository.UserRepository;
 import com.micro.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,6 +54,13 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUsers() {
         List<UserResponse> allUser = userService.getAllUser();
         return ResponseEntity.ok(new ApiResponse<>(200,"User fetch Successfully",allUser,null,LocalDateTime.now()));
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsersByPage(@RequestParam(required = false) String keyword, Pageable pageable){
+        Page<UserResponse> usersPage = userService.getUsersPage(keyword, pageable);
+        return ResponseEntity.ok(new ApiResponse<>(200,"user fetch successfully",usersPage,null,LocalDateTime.now()));
+
     }
 
     @GetMapping("/{id}")

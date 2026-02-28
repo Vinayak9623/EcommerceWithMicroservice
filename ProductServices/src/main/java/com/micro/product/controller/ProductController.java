@@ -6,6 +6,8 @@ import com.micro.product.dto.ProductDto;
 import com.micro.product.dto.ReduceStockRequest;
 import com.micro.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,14 +21,6 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
-
-
-//    @PostMapping(value = "/save",consumes = "multipart/form-data")
-//    public ResponseEntity<ApiResponse<ProductDto>> save(@RequestPart("product") ProductDto productDto,
-//                                                        @RequestPart("image")MultipartFile image) {
-//        ProductDto saveProduct = productService.create(productDto,image);
-//        return ResponseEntity.ok(new ApiResponse<>(201,"Product added successfully",saveProduct,null, LocalDateTime.now()));
-//    }
 
     @PostMapping(value = "/save", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<ProductDto>> save(
@@ -47,7 +41,6 @@ public class ProductController {
                         LocalDateTime.now())
         );
     }
-
 
     @GetMapping("/")
     public ResponseEntity<ApiResponse<List<ProductDto>>> getProducts(){
@@ -87,5 +80,10 @@ public class ProductController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Stock restored successfully", "SUCCESS", null, LocalDateTime.now()));
     }
 
+    @GetMapping("/getPagableProducts")
+    public ResponseEntity<ApiResponse<Page<ProductDto>>> getProductPage(@RequestParam(required = false) String keyword, Pageable pageable){
+        Page<ProductDto> page = productService.getproductpage(keyword, pageable);
+        return ResponseEntity.ok(new ApiResponse<>(200,"Product fetch successfully",page,null,LocalDateTime.now()));
+    }
 
 }

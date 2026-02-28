@@ -8,6 +8,8 @@ import com.micro.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -143,5 +145,12 @@ public class ProductServiceImpl implements ProductService {
                 product.getStockQuantity() + quantity);
         productRepository.save(product);
     }
+
+    @Override
+    public Page<ProductDto> getproductpage(String keyword, Pageable pageable) {
+        Page<Product> products = productRepository.searchProduct(keyword, pageable);
+        return products.map(product -> productMapper.map(product, ProductDto.class));
+    }
+
 }
 

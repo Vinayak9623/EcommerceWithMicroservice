@@ -1,6 +1,8 @@
 package com.micro.product.service;
 
 import com.micro.product.dto.ProductDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -15,6 +17,7 @@ public interface ProductService {
     String deleteProduct(Long id);
     void reduceStock(Long productId, int quantity);
     void restoreStock(Long productId, int quantity);
+    Page<ProductDto> getproductpage(String keyword, Pageable pageable);
 
 
 

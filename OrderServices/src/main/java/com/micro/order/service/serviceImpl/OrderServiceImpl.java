@@ -113,22 +113,6 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-//    public OrderResponse updateOrder(Long id, OrderRequest orderRequest) {
-//
-//        Order order = orderRepository.findById(id)
-//                .orElseThrow(() ->
-//                        new OrderNotFoundException("Order not found with id: " + id));
-//
-//
-//        order.setQuantity(orderRequest.getQuantity());
-//        order.setPrice(orderRequest.getPrice());
-//        order.setStatus("UPDATED");
-//
-//        Order updatedOrder = orderRepository.save(order);
-//        return orderMapper.map(updatedOrder, OrderResponse.class);
-//    }
-
     @Override
     public String deleteOrder(Long id) {
 
