@@ -11,6 +11,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
-    @Query("select p from Product p where p.name like %:keyword% or :keyword is null")
-    Page<Product> searchProduct(@Param("keyword") String keyword, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE " +
+           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:category IS NULL OR LOWER(p.category) = LOWER(:category)) AND " +
+           "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+           "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+    Page<Product> searchProduct(@Param("keyword") String keyword, 
+                                @Param("category") String category,
+                                @Param("minPrice") Double minPrice,
+                                @Param("maxPrice") Double maxPrice,
+                                Pageable pageable);
 }

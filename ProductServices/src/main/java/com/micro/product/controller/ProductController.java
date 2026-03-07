@@ -81,8 +81,13 @@ public class ProductController {
     }
 
     @GetMapping("/getPagableProducts")
-    public ResponseEntity<ApiResponse<Page<ProductDto>>> getProductPage(@RequestParam(required = false) String keyword, Pageable pageable){
-        Page<ProductDto> page = productService.getproductpage(keyword, pageable);
+    public ResponseEntity<ApiResponse<Page<ProductDto>>> getProductPage(
+            @RequestParam(required = false) String keyword, 
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            Pageable pageable){
+        Page<ProductDto> page = productService.getproductpage(keyword, category, minPrice, maxPrice, pageable);
         return ResponseEntity.ok(new ApiResponse<>(200,"Product fetch successfully",page,null,LocalDateTime.now()));
     }
 

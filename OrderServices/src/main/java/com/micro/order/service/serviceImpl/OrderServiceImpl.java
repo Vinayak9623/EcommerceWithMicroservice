@@ -14,6 +14,8 @@ import com.micro.order.repository.OrderRepository;
 import com.micro.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -122,6 +124,12 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(order -> orderMapper.map(order, OrderResponse.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<OrderResponse> getOrdersPaginated(Long userId, String status, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        Page<Order> orders = orderRepository.filterOrders(userId, status, startDate, endDate, pageable);
+        return orders.map(order -> orderMapper.map(order, OrderResponse.class));
     }
 
     @Override
