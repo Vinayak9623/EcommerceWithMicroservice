@@ -1,13 +1,9 @@
 package com.micro.order.dto.request;
 
-import com.micro.order.model.OrderItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,5 +11,4 @@ import java.util.List;
 @Builder
 public class OrderRequest {
     private Long userId;
-    private List<OrderItemRequest> items;
 }

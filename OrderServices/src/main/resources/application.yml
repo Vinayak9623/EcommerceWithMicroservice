@@ -27,6 +27,8 @@ services:
     url: http://localhost:8091
   user-service:
     url: http://localhost:8090
+  cart-service:
+    url: http://localhost:8093
 eureka:
   client:
     service-url:
