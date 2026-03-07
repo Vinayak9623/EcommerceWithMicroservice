@@ -1,4 +1,4 @@
-package com.micro.product.common;
+package com.micro.cart.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
