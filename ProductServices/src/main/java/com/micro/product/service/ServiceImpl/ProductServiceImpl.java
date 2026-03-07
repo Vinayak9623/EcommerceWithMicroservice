@@ -147,8 +147,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getproductpage(String keyword, Pageable pageable) {
-        Page<Product> products = productRepository.searchProduct(keyword, pageable);
+    public Page<ProductDto> getproductpage(String keyword, String category, Double minPrice, Double maxPrice, Pageable pageable) {
+        Page<Product> products = productRepository.searchProduct(keyword, category, minPrice, maxPrice, pageable);
         return products.map(product -> productMapper.map(product, ProductDto.class));
     }
 

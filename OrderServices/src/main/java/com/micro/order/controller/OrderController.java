@@ -5,6 +5,8 @@ import com.micro.order.dto.request.OrderRequest;
 import com.micro.order.dto.response.OrderResponse;
 import com.micro.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,17 @@ public class OrderController {
         return ResponseEntity.ok(new ApiResponse<>(200, "Orders fetched successfully", orders, null, LocalDateTime.now()
                 )
         );
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getPaginatedOrders(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            Pageable pageable) {
+        Page<OrderResponse> orders = orderService.getOrdersPaginated(userId, status, startDate, endDate, pageable);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Orders fetched successfully", orders, null, LocalDateTime.now()));
     }
 
     @DeleteMapping("/delete/{id}")
