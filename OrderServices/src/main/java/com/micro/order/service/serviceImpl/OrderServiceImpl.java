@@ -1,8 +1,10 @@
 package com.micro.order.service.serviceImpl;
 
+import com.micro.order.client.CartClient;
 import com.micro.order.client.ProductClient;
 import com.micro.order.client.UserClient;
-import com.micro.order.dto.request.OrderItemRequest;
+import com.micro.order.dto.response.CartDto;
+import com.micro.order.dto.response.CartItemDto;
 import com.micro.order.globalException.customException.OrderNotFoundException;
 import com.micro.order.dto.request.OrderRequest;
 import com.micro.order.dto.response.OrderResponse;
@@ -27,12 +29,14 @@ public class OrderServiceImpl implements OrderService {
     private final ModelMapper orderMapper;
     private final ProductClient productClient;
     private final UserClient userClient;
+    private final CartClient cartClient;
 
     @Override
     public OrderResponse placeOrder(OrderRequest request, String token) {
 
-        if (request.getItems() == null || request.getItems().isEmpty()) {
-            throw new IllegalArgumentException("Order must contain items");
+        CartDto cart = cartClient.getCart(request.getUserId(), token);
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Cart is empty");
         }
 
         // 1️⃣ Create order with PENDING status first
@@ -45,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        List<OrderItemRequest> reducedItems = new ArrayList<>();
+        List<CartItemDto> reducedItems = new ArrayList<>();
         double totalAmount = 0;
 
         try {
@@ -53,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
             userClient.validateUser(request.getUserId(), token);
 
             // 3️⃣ Reduce stock
-            for (OrderItemRequest item : request.getItems()) {
+            for (CartItemDto item : cart.getItems()) {
 
                 productClient.reduceStock(
                         item.getProductId(),
@@ -67,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // 4️⃣ Create order items
-            List<OrderItem> orderItems = request.getItems().stream()
+            List<OrderItem> orderItems = cart.getItems().stream()
                     .map(item -> OrderItem.builder()
                             .productId(item.getProductId())
                             .quantity(item.getQuantity())
@@ -81,13 +85,20 @@ public class OrderServiceImpl implements OrderService {
             savedOrder.setStatus("CREATED");
 
             Order finalOrder = orderRepository.save(savedOrder);
+            
+            // 5️⃣ Clear cart on success
+            try {
+                cartClient.clearCart(request.getUserId(), token);
+            } catch (Exception ignored) {
+                // Log and ignore to prevent failing an existing successful order
+            }
 
             return orderMapper.map(finalOrder, OrderResponse.class);
 
         } catch (Exception ex) {
 
             // 🔁 Rollback stock if reduced
-            for (OrderItemRequest item : reducedItems) {
+            for (CartItemDto item : reducedItems) {
                 productClient.restoreStock(
                         item.getProductId(),
                         item.getQuantity(),
