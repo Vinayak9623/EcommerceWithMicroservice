@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:usersMicro}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+services:
+  product-service:
+    url: ${PRODUCT_SERVICE_URL:http://product-service}
+  user-service:
+    url: ${USER_SERVICE_URL:http://user-service}
