@@ -1,6 +1,7 @@
 package com.micro.order.service.serviceImpl;
 
 import com.micro.order.client.CartClient;
+import com.micro.order.client.NotificationClient;
 import com.micro.order.client.ProductClient;
 import com.micro.order.client.UserClient;
 import com.micro.order.dto.response.CartDto;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductClient productClient;
     private final UserClient userClient;
     private final CartClient cartClient;
+    private final NotificationClient notificationClient;
 
     @Override
     public OrderResponse placeOrder(OrderRequest request, String token) {
@@ -95,6 +98,24 @@ public class OrderServiceImpl implements OrderService {
                 // Log and ignore to prevent failing an existing successful order
             }
 
+            // 6️⃣ Send Email Notification
+            try {
+                UserClient.UserResponse user = userClient.getUserById(request.getUserId(), token);
+                NotificationClient.EmailRequest emailRequest = NotificationClient.EmailRequest.builder()
+                        .toEmail(user.getEmail())
+                        .customerName(user.getName())
+                        .orderId(finalOrder.getId())
+                        .subject("Order Confirmation - #" + finalOrder.getId())
+                        .totalAmount(BigDecimal.valueOf(finalOrder.getTotalAmount()))
+                        .orderStatus(finalOrder.getStatus())
+                        .build();
+
+                notificationClient.sendOrderConfirmation(emailRequest, token);
+            } catch (Exception ex) {
+                // Log notification failure but don't fail the order
+                System.err.println("Failed to send email notification: " + ex.getMessage());
+            }
+
             return orderMapper.map(finalOrder, OrderResponse.class);
 
         } catch (Exception ex) {
@@ -143,4 +164,3 @@ public class OrderServiceImpl implements OrderService {
         return "Order with id " + id + " deleted successfully";
     }
 }
-
