@@ -16,6 +16,8 @@ services:
     url: ${USER_SERVICE_URL:http://user-service}
   cart-service:
     url: ${CART_SERVICE_URL:http://cart-service}
+  notification-service:
+    url: ${NOTIFICATION_SERVICE_URL:http://notification-service}
 eureka:
   client:
     service-url:
