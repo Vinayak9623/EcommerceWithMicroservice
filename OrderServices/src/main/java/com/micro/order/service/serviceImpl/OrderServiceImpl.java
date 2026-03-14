@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,12 +41,29 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse placeOrder(OrderRequest request, String token) {
 
-        CartDto cart = cartClient.getCart(request.getUserId(), token);
+        // 1️⃣ Parallel Fetch: Get Cart and User Details Concurrently
+        CompletableFuture<CartDto> cartFuture = CompletableFuture.supplyAsync(
+                () -> cartClient.getCart(request.getUserId(), token));
+        
+        CompletableFuture<UserClient.UserResponse> userFuture = CompletableFuture.supplyAsync(
+                () -> userClient.getUserById(request.getUserId(), token));
+
+        CartDto cart;
+        UserClient.UserResponse user;
+        
+        try {
+            CompletableFuture.allOf(cartFuture, userFuture).join();
+            cart = cartFuture.get();
+            user = userFuture.get();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to fetch cart or user details", ex);
+        }
+
         if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new IllegalArgumentException("Cart is empty");
         }
 
-        // 1️⃣ Create order with PENDING status first
+        // 2️⃣ Create order with PENDING status first
         Order order = Order.builder()
                 .userId(request.getUserId())
                 .orderDate(LocalDateTime.now())
@@ -54,26 +73,26 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        List<CartItemDto> reducedItems = new ArrayList<>();
-        double totalAmount = 0;
+        ConcurrentLinkedQueue<CartItemDto> successfulReductions = new ConcurrentLinkedQueue<>();
 
         try {
-            // 2️⃣ Validate user
-            userClient.validateUser(request.getUserId(), token);
+            // 3️⃣ Reduce stock in parallel
+            List<CompletableFuture<Void>> reduceStockFutures = cart.getItems().stream()
+                    .map(item -> CompletableFuture.runAsync(() -> {
+                        productClient.reduceStock(
+                                item.getProductId(),
+                                item.getQuantity(),
+                                token
+                        );
+                        successfulReductions.add(item);
+                    }))
+                    .collect(Collectors.toList());
 
-            // 3️⃣ Reduce stock
-            for (CartItemDto item : cart.getItems()) {
+            CompletableFuture.allOf(reduceStockFutures.toArray(new CompletableFuture[0])).join();
 
-                productClient.reduceStock(
-                        item.getProductId(),
-                        item.getQuantity(),
-                        token
-                );
-
-                reducedItems.add(item);
-
-                totalAmount += item.getPrice() * item.getQuantity();
-            }
+            double totalAmount = successfulReductions.stream()
+                    .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                    .sum();
 
             // 4️⃣ Create order items
             List<OrderItem> orderItems = cart.getItems().stream()
@@ -91,42 +110,47 @@ public class OrderServiceImpl implements OrderService {
 
             Order finalOrder = orderRepository.save(savedOrder);
             
-            // 5️⃣ Clear cart on success
-            try {
-                cartClient.clearCart(request.getUserId(), token);
-            } catch (Exception ignored) {
-                // Log and ignore to prevent failing an existing successful order
-            }
+            // 5️⃣ Clear cart on success (Asynchronously)
+            CompletableFuture.runAsync(() -> {
+                try {
+                    cartClient.clearCart(request.getUserId(), token);
+                } catch (Exception ignored) {
+                    // Log and ignore
+                }
+            });
 
-            // 6️⃣ Send Email Notification
-            try {
-                UserClient.UserResponse user = userClient.getUserById(request.getUserId(), token);
-                NotificationClient.EmailRequest emailRequest = NotificationClient.EmailRequest.builder()
-                        .toEmail(user.getEmail())
-                        .customerName(user.getName())
-                        .orderId(finalOrder.getId())
-                        .subject("Order Confirmation - #" + finalOrder.getId())
-                        .totalAmount(BigDecimal.valueOf(finalOrder.getTotalAmount()))
-                        .orderStatus(finalOrder.getStatus())
-                        .build();
+            // 6️⃣ Send Email Notification (Asynchronously)
+            CompletableFuture.runAsync(() -> {
+                try {
+                    NotificationClient.EmailRequest emailRequest = NotificationClient.EmailRequest.builder()
+                            .toEmail(user.getEmail())
+                            .customerName(user.getName())
+                            .orderId(finalOrder.getId())
+                            .subject("Order Confirmation - #" + finalOrder.getId())
+                            .totalAmount(BigDecimal.valueOf(finalOrder.getTotalAmount()))
+                            .orderStatus(finalOrder.getStatus())
+                            .build();
 
-                notificationClient.sendOrderConfirmation(emailRequest, token);
-            } catch (Exception ex) {
-                // Log notification failure but don't fail the order
-                System.err.println("Failed to send email notification: " + ex.getMessage());
-            }
+                    notificationClient.sendOrderConfirmation(emailRequest, token);
+                } catch (Exception ex) {
+                    System.err.println("Failed to send email notification: " + ex.getMessage());
+                }
+            });
 
             return orderMapper.map(finalOrder, OrderResponse.class);
 
         } catch (Exception ex) {
 
-            // 🔁 Rollback stock if reduced
-            for (CartItemDto item : reducedItems) {
-                productClient.restoreStock(
-                        item.getProductId(),
-                        item.getQuantity(),
-                        token
-                );
+            // 🔁 Rollback stock asynchronously for items that succeeded
+            List<CompletableFuture<Void>> rollbackFutures = successfulReductions.stream()
+                    .map(item -> CompletableFuture.runAsync(() -> 
+                            productClient.restoreStock(item.getProductId(), item.getQuantity(), token)))
+                    .collect(Collectors.toList());
+            
+            try {
+                CompletableFuture.allOf(rollbackFutures.toArray(new CompletableFuture[0])).join();
+            } catch (Exception rollbackEx) {
+                System.err.println("Failed during rollback: " + rollbackEx.getMessage());
             }
 
             // ❗ Mark order as FAILED
