@@ -1,34 +1,20 @@
-HELP.md
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Ignore all target folders in all microservices
+**/target/
+**/*.class
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Ignore IDE files in all microservices
+**/.idea/
+**/*.iml
+**/.settings/
+**/.classpath
+**/.project
 
-### IntelliJ IDEA ###
+# Ignore uploaded files
+**/uploads/
+
+# tp
 .idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-uploads/
+*.log
+.DS_Store
+.env
