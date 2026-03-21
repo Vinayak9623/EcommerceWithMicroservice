@@ -1,5 +1,6 @@
 server:
   port: 8094
+  forward-headers-strategy: framework
 
 spring:
   profiles:
