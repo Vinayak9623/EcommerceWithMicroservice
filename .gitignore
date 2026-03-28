@@ -1,6 +1,10 @@
 # Ignore all target folders in all microservices
 **/target/
 **/*.class
+compiler.xml .idea
+encodings.xml .idea
+misc.xml .idea
+HELP.md
 
 # Ignore IDE files in all microservices
 **/.idea/
