@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
     private String baseUrl;
 
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public ProductDto create(ProductDto productDto, MultipartFile image) {
 
         // ✅ 1. Validate image
@@ -70,6 +73,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "products")
     public List<ProductDto> getAllProduct() {
 
         return productRepository.findAll()
@@ -89,6 +93,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public ProductDto update(Long id, ProductDto productDto) {
 
         Product product = productRepository.findById(id)
@@ -106,6 +111,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public String deleteProduct(Long id) {
 
         Product product = productRepository.findById(id)
@@ -117,6 +123,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public void reduceStock(Long productId, int quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() ->
@@ -135,6 +142,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @CacheEvict(value = "products", allEntries = true)
     public void restoreStock(Long productId, int quantity) {
 
         Product product = productRepository.findById(productId)
