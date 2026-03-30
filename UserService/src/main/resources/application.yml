@@ -1,6 +1,14 @@
 spring:
   profiles:
     active: dev
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+  data:
+    redis:
+      host: localhost
+      port: 6379
   application:
     name: user-service
   datasource:

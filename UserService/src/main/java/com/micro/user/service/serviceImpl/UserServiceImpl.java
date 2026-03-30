@@ -22,6 +22,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
 
     @Override
+    @CacheEvict(value = "users", allEntries = true)
     public UserResponse registerUser(UserDto userDto) {
 
         if(userRepository.findByEmail(userDto.getEmail()).isPresent()){
@@ -69,6 +72,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Cacheable(value = "users")
     public List<UserResponse> getAllUser() {
         List<User> users = userRepository.findAll();
         return users.stream()
@@ -83,6 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", allEntries = true)
     public UserResponse updateUser(long id, UserDto userDto) {
 
         User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User Not found"));
@@ -98,6 +103,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "users", allEntries = true)
     public String deleteUser(long id) {
 
         User user = userRepository
