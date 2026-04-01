@@ -3,6 +3,11 @@ spring:
     active: dev
   application:
     name: order-service
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
   datasource:
     url: jdbc:mysql://localhost:3306/usersMicro
     username: root
